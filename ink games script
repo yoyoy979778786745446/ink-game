@@ -1,0 +1,260 @@
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- Function to check if the game is Ink Game
+local function isInkGame()
+    local placeId = game.PlaceId
+    -- Ink Game place IDs (placeholder, update with actual ID if known)
+    local inkGamePlaceIds = {1234567890} -- Replace with actual PlaceId
+    return table.find(inkGamePlaceIds, placeId) or game.Name:lower():find("ink game")
+end
+
+-- Load Rayfield UI Library
+local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+local Window = Rayfield:CreateWindow({
+    Name = "Ink Game Script | Season 3",
+    LoadingTitle = "Ink Game Enhanced",
+    LoadingSubtitle = "by Ringta",
+    Theme = "Green",
+    ConfigurationSaving = { Enabled = false },
+    Discord = { Enabled = false },
+    KeySystem = false
+})
+
+-- Main script execution
+local function executeRemoteScript()
+    if not isInkGame() then
+        warn("Warning: This script is designed for Ink Game. Current game may not be compatible.")
+        Rayfield:Notify({
+            Title = "Compatibility Error",
+            Content = "This script is for Ink Game. Current game may not support it.",
+            Duration = 5,
+            Image = "rbxassetid://4483345998"
+        })
+        return
+    end
+
+    local url = "https://raw.githubusercontent.com/wefwef127382/inkgames.github.io/refs/heads/main/ringta.lua"
+    print("Attempting to fetch script from: " .. url)
+
+    local success, response = pcall(function()
+        return HttpService:GetAsync(url)
+    end)
+
+    if success and response then
+        print("Successfully fetched script. Loading...")
+        local func, err = loadstring(response)
+        if func then
+            local execSuccess, execResult = pcall(func)
+            if execSuccess then
+                print("Script executed successfully!")
+                Rayfield:Notify({
+                    Title = "Script Loaded",
+                    Content = "Ringta script loaded successfully! Use the GUI to toggle features.",
+                    Duration = 5,
+                    Image = "rbxassetid://4483345998"
+                })
+            else
+                warn("Error executing script: " .. tostring(execResult))
+                Rayfield:Notify({
+                    Title = "Execution Error",
+                    Content = "Failed to execute script: " .. tostring(execResult),
+                    Duration = 5,
+                    Image = "rbxassetid://4483345998"
+                })
+            end
+        else
+            warn("Failed to load script: " .. tostring(err))
+            Rayfield:Notify({
+                Title = "Load Error",
+                Content = "Failed to load script: " .. tostring(err),
+                Duration = 5,
+                Image = "rbxassetid://4483345998"
+            })
+        end
+    else
+        warn("Failed to fetch script from URL: " .. tostring(response))
+        Rayfield:Notify({
+            Title = "Fetch Error",
+            Content = "Failed to fetch script. Check your connection or URL.",
+            Duration = 5,
+            Image = "rbxassetid://4483345998"
+        })
+    end
+end
+
+-- Create GUI Tabs and Buttons
+local MainTab = Window:CreateTab("Main Features", nil)
+local MiscTab = Window:CreateTab("Misc", nil)
+
+-- Feature Toggles (assuming ringta.lua exposes these as global functions or variables)
+MainTab:CreateToggle({
+    Name = "Auto Win Red Light Green Light",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.AutoRedLightGreenLight then
+            _G.AutoRedLightGreenLight(Value)
+            Rayfield:Notify({
+                Title = "Red Light Green Light",
+                Content = Value and "Auto Win enabled!" or "Auto Win disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Auto Red Light Green Light not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Dalgona",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.AutoDalgona then
+            _G.AutoDalgona(Value)
+            Rayfield:Notify({
+                Title = "Dalgona",
+                Content = Value and "Auto Dalgona enabled!" or "Auto Dalgona disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Auto Dalgona not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Tug of War",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.AutoTugOfWar then
+            _G.AutoTugOfWar(Value)
+            Rayfield:Notify({
+                Title = "Tug of War",
+                Content = Value and "Auto Tug of War enabled!" or "Auto Tug of War disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Auto Tug of War not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Glass Vision (Glass Bridge)",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.GlassVision then
+            _G.GlassVision(Value)
+            Rayfield:Notify({
+                Title = "Glass Vision",
+                Content = Value and "Glass Vision enabled!" or "Glass Vision disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Glass Vision not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Auto Choke (Mingle)",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.AutoChoke then
+            _G.AutoChoke(Value)
+            Rayfield:Notify({
+                Title = "Auto Choke",
+                Content = Value and "Auto Choke enabled!" or "Auto Choke disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Auto Choke not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+MainTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Callback = function(Value)
+        if _G.Noclip then
+            _G.Noclip(Value)
+            Rayfield:Notify({
+                Title = "Noclip",
+                Content = Value and "Noclip enabled!" or "Noclip disabled!",
+                Duration = 3
+            })
+        else
+            Rayfield:Notify({
+                Title = "Feature Unavailable",
+                Content = "Noclip not found in script.",
+                Duration = 5
+            })
+        end
+    end
+})
+
+-- Misc Features
+MiscTab:CreateToggle({
+    Name = "Anti AFK",
+    CurrentValue = false,
+    Callback = function(Value)
+        local VirtualUser = game:GetService("VirtualUser")
+        if Value then
+            Players.LocalPlayer.Idled:Connect(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end)
+            Rayfield:Notify({
+                Title = "Anti AFK",
+                Content = "Anti AFK enabled!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Season 3 Info",
+    Callback = function()
+        Rayfield:Notify({
+            Title = "Ink Game Season 3 Update",
+            Content = "New Hide and Seek mode, secret roles, new powers, and dodge mechanic. Use toggles to enable features!",
+            Duration = 6
+        })
+    end
+})
+
+-- Execute Script if HttpService is enabled
+if HttpService.HttpEnabled then
+    executeRemoteScript()
+else
+    warn("HttpService is disabled. Enable it in game settings to use this script.")
+    Rayfield:Notify({
+        Title = "HttpService Error",
+        Content = "HttpService is disabled. Enable it in game settings.",
+        Duration = 5,
+        Image = "rbxassetid://4483345998"
+    })
+end

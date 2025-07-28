@@ -15,7 +15,7 @@ local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shle
 local Window = Rayfield:CreateWindow({
     Name = "Ink Game Script | Season 3",
     LoadingTitle = "Ink Game Enhanced",
-    LoadingSubtitle = "by Ringta",
+    LoadingSubtitle = "by Ayoung",
     Theme = "Green",
     ConfigurationSaving = { Enabled = false },
     Discord = { Enabled = false },
@@ -51,7 +51,7 @@ local function executeRemoteScript()
                 print("Script executed successfully!")
                 Rayfield:Notify({
                     Title = "Script Loaded",
-                    Content = "Ringta script loaded successfully! Use the GUI to toggle features.",
+                    Content = "Ayoung's script loaded successfully! Use the GUI to toggle features.",
                     Duration = 5,
                     Image = "rbxassetid://4483345998"
                 })
@@ -243,6 +243,29 @@ MiscTab:CreateButton({
             Content = "New Hide and Seek mode, secret roles, new powers, and dodge mechanic. Use toggles to enable features!",
             Duration = 6
         })
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Join Discord",
+    Callback = function()
+        local discordLink = "https://discord.gg/mrGvYhBa"
+        if setclipboard then
+            setclipboard(discordLink)
+            Rayfield:Notify({
+                Title = "Join Discord",
+                Content = "Discord invite link copied to clipboard: " .. discordLink,
+                Duration = 6,
+                Image = "rbxassetid://4483345998"
+            })
+        else
+            Rayfield:Notify({
+                Title = "Error",
+                Content = "Clipboard functionality not supported. Join manually: " .. discordLink,
+                Duration = 6,
+                Image = "rbxassetid://4483345998"
+            })
+        end
     end
 })
 

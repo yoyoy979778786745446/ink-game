@@ -1,283 +1,331 @@
-local HttpService = game:GetService("HttpService")
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Function to check if the game is Ink Game
-local function isInkGame()
-    local placeId = game.PlaceId
-    -- Ink Game place IDs (placeholder, update with actual ID if known)
-    local inkGamePlaceIds = {1234567890} -- Replace with actual PlaceId
-    return table.find(inkGamePlaceIds, placeId) or game.Name:lower():find("ink game")
-end
-
--- Load Rayfield UI Library
-local Rayfield = loadstring(game:HttpGet('https://raw.githubusercontent.com/shlexware/Rayfield/main/source'))()
+-- Create Rayfield Window
 local Window = Rayfield:CreateWindow({
-    Name = "Ink Game Script | Season 3",
-    LoadingTitle = "Ink Game Enhanced",
-    LoadingSubtitle = "by Ayoung",
-    Theme = "Green",
-    ConfigurationSaving = { Enabled = false },
-    Discord = { Enabled = false },
-    KeySystem = false
+    Name = "Ink Game GUI",
+    LoadingTitle = "Ink Game Script",
+    LoadingSubtitle = "by xAI",
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = "InkGameConfig",
+        FileName = "Config"
+    }
 })
 
--- Main script execution
-local function executeRemoteScript()
-    if not isInkGame() then
-        warn("Warning: This script is designed for Ink Game. Current game may not be compatible.")
-        Rayfield:Notify({
-            Title = "Compatibility Error",
-            Content = "This script is for Ink Game. Current game may not support it.",
-            Duration = 5,
-            Image = "rbxassetid://4483345998"
-        })
-        return
+-- General Tab
+local GeneralTab = Window:CreateTab("General", nil)
+
+-- God Mode
+local godModeEnabled = false
+local function enableGodMode()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.MaxHealth = math.huge
+            humanoid.Health = math.huge
+            humanoid.HealthChanged:Connect(function()
+                if godModeEnabled then
+                    humanoid.Health = math.huge
+                end
+            end)
+        end
     end
+end
 
-    local url = "https://raw.githubusercontent.com/wefwef127382/inkgames.github.io/refs/heads/main/ringta.lua"
-    print("Attempting to fetch script from: " .. url)
+GeneralTab:CreateToggle({
+    Name = "God Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        godModeEnabled = Value
+        if Value then
+            enableGodMode()
+        end
+    end
+})
 
-    local success, response = pcall(function()
-        return HttpService:GetAsync(url)
-    end)
+-- Infinite Stamina
+local staminaEnabled = false
+local function enableInfiniteStamina()
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:SetAttribute("Stamina", math.huge)
+            humanoid:GetAttributeChangedSignal("Stamina"):Connect(function()
+                if staminaEnabled then
+                    humanoid:SetAttribute("Stamina", math.huge)
+                end
+            end)
+        end
+    end
+end
 
-    if success and response then
-        print("Successfully fetched script. Loading...")
-        local func, err = loadstring(response)
-        if func then
-            local execSuccess, execResult = pcall(func)
-            if execSuccess then
-                print("Script executed successfully!")
-                Rayfield:Notify({
-                    Title = "Script Loaded",
-                    Content = "Ayoung's script loaded successfully! Use the GUI to toggle features.",
-                    Duration = 5,
-                    Image = "rbxassetid://4483345998"
-                })
+GeneralTab:CreateToggle({
+    Name = "Infinite Stamina",
+    CurrentValue = false,
+    Callback = function(Value)
+        staminaEnabled = Value
+        if Value then
+            enableInfiniteStamina()
+        end
+    end
+})
+
+-- Speed Slider
+local speed = 16
+local function setSpeed(newSpeed)
+    if LocalPlayer.Character then
+        local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.WalkSpeed = newSpeed
+        end
+    end
+end
+
+GeneralTab:CreateSlider({
+    Name = "Player Speed",
+    Range = {16, 100},
+    Increment = 1,
+    CurrentValue = 16,
+    Callback = function(Value)
+        speed = Value
+        setSpeed(speed)
+    end
+})
+
+-- ESP Function
+local espEnabled = false
+local function createESP(object, color)
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = color
+    highlight.OutlineColor = color
+    highlight.FillTransparency = 0.5
+    highlight.OutlineTransparency = 0
+    highlight.Adornee = object
+    highlight.Parent = object
+    return highlight
+end
+
+local function setupESP()
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name:lower():match("door") then
+            createESP(obj, Color3.new(1, 0, 0)) -- Red for doors
+        elseif obj.Name:lower():match("exit") then
+            createESP(obj, Color3.new(0, 1, 0)) -- Green for exits
+        elseif obj.Name:lower():match("stair") then
+            createESP(obj, Color3.new(0, 0, 1)) -- Blue for stairs
+        end
+    end
+end
+
+GeneralTab:CreateToggle({
+    Name = "Door/Exit/Staircase ESP",
+    CurrentValue = false,
+    Callback = function(Value)
+        espEnabled = Value
+        if Value then
+            setupESP()
+        else
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj:FindFirstChildOfClass("Highlight") then
+                    obj:FindFirstChildOfClass("Highlight"):Destroy()
+                end
+            end
+        end
+    end
+})
+
+-- Red Light, Green Light Tab
+local RLGLTab = Window:CreateTab("Red Light, Green Light", nil)
+local autoStopEnabled = false
+local function redLightGreenLight()
+    local isRedLight = false -- Placeholder: Detect game state
+    RunService.RenderStepped:Connect(function()
+        if autoStopEnabled and LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if isRedLight then
+                humanoid.WalkSpeed = 0
             else
-                warn("Error executing script: " .. tostring(execResult))
+                setSpeed(speed)
+            end
+        end
+    end)
+end
+
+RLGLTab:CreateToggle({
+    Name = "Auto-Stop",
+    CurrentValue = false,
+    Callback = function(Value)
+        autoStopEnabled = Value
+        if Value then
+            redLightGreenLight()
+        end
+    end
+})
+
+-- Tug of War Tab
+local TugTab = Window:CreateTab("Tug of War", nil)
+local autoPullEnabled = false
+local function autoPullTugOfWar()
+    while autoPullEnabled do
+        if ReplicatedStorage:FindFirstChild("PullEvent") then
+            ReplicatedStorage.PullEvent:FireServer()
+        end
+        wait(0.05)
+    end
+end
+
+TugTab:CreateToggle({
+    Name = "Auto-Pull",
+    CurrentValue = false,
+    Callback = function(Value)
+        autoPullEnabled = Value
+        if Value then
+            coroutine.wrap(autoPullTugOfWar)()
+        end
+    end
+})
+
+-- Glass Bridge Tab
+local GlassTab = Window:CreateTab("Glass Bridge", nil)
+local glassVisionEnabled = false
+local function glassVision()
+    for _, part in pairs(workspace:GetDescendants()) do
+        if part.Name:match("Glass") or part.Name:match("Tile") then
+            part.Transparency = glassVisionEnabled and 0.5 or 0
+            if glassVisionEnabled then
+                createESP(part, Color3.new(0, 1, 0))
+            else
+                if part:FindFirstChildOfClass("Highlight") then
+                    part:FindFirstChildOfClass("Highlight"):Destroy()
+                end
+            end
+        end
+    end
+end
+
+GlassTab:CreateToggle({
+    Name = "Glass Vision",
+    CurrentValue = false,
+    Callback = function(Value)
+        glassVisionEnabled = Value
+        glassVision()
+    end
+})
+
+GlassTab:CreateButton({
+    Name = "Teleport to End",
+    Callback = function()
+        if LocalPlayer.Character then
+            local endPart = workspace:FindFirstChild("GlassBridgeEnd")
+            if endPart then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = endPart.CFrame + Vector3.new(0, 5, 0)
+            else
                 Rayfield:Notify({
-                    Title = "Execution Error",
-                    Content = "Failed to execute script: " .. tostring(execResult),
-                    Duration = 5,
-                    Image = "rbxassetid://4483345998"
+                    Title = "Error",
+                    Content = "GlassBridgeEnd not found!",
+                    Duration = 3
                 })
             end
-        else
-            warn("Failed to load script: " .. tostring(err))
-            Rayfield:Notify({
-                Title = "Load Error",
-                Content = "Failed to load script: " .. tostring(err),
-                Duration = 5,
-                Image = "rbxassetid://4483345998"
-            })
         end
-    else
-        warn("Failed to fetch script from URL: " .. tostring(response))
-        Rayfield:Notify({
-            Title = "Fetch Error",
-            Content = "Failed to fetch script. Check your connection or URL.",
-            Duration = 5,
-            Image = "rbxassetid://4483345998"
-        })
+    end
+})
+
+-- Mingle Tab
+local MingleTab = Window:CreateTab("Mingle", nil)
+local autoChokeEnabled = false
+local function autoChokeMingle()
+    while autoChokeEnabled do
+        for _, player in pairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                if ReplicatedStorage:FindFirstChild("ChokeEvent") then
+                    ReplicatedStorage.ChokeEvent:FireServer(player.Character.HumanoidRootPart)
+                end
+            end
+        end
+        wait(0.3)
     end
 end
 
--- Create GUI Tabs and Buttons
-local MainTab = Window:CreateTab("Main Features", nil)
-local MiscTab = Window:CreateTab("Misc", nil)
-
--- Feature Toggles (assuming ringta.lua exposes these as global functions or variables)
-MainTab:CreateToggle({
-    Name = "Auto Win Red Light Green Light",
+MingleTab:CreateToggle({
+    Name = "Auto-Choke",
     CurrentValue = false,
     Callback = function(Value)
-        if _G.AutoRedLightGreenLight then
-            _G.AutoRedLightGreenLight(Value)
-            Rayfield:Notify({
-                Title = "Red Light Green Light",
-                Content = Value and "Auto Win enabled!" or "Auto Win disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Auto Red Light Green Light not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Dalgona",
-    CurrentValue = false,
-    Callback = function(Value)
-        if _G.AutoDalgona then
-            _G.AutoDalgona(Value)
-            Rayfield:Notify({
-                Title = "Dalgona",
-                Content = Value and "Auto Dalgona enabled!" or "Auto Dalgona disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Auto Dalgona not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Tug of War",
-    CurrentValue = false,
-    Callback = function(Value)
-        if _G.AutoTugOfWar then
-            _G.AutoTugOfWar(Value)
-            Rayfield:Notify({
-                Title = "Tug of War",
-                Content = Value and "Auto Tug of War enabled!" or "Auto Tug of War disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Auto Tug of War not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Glass Vision (Glass Bridge)",
-    CurrentValue = false,
-    Callback = function(Value)
-        if _G.GlassVision then
-            _G.GlassVision(Value)
-            Rayfield:Notify({
-                Title = "Glass Vision",
-                Content = Value and "Glass Vision enabled!" or "Glass Vision disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Glass Vision not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Auto Choke (Mingle)",
-    CurrentValue = false,
-    Callback = function(Value)
-        if _G.AutoChoke then
-            _G.AutoChoke(Value)
-            Rayfield:Notify({
-                Title = "Auto Choke",
-                Content = Value and "Auto Choke enabled!" or "Auto Choke disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Auto Choke not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
-MainTab:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Callback = function(Value)
-        if _G.Noclip then
-            _G.Noclip(Value)
-            Rayfield:Notify({
-                Title = "Noclip",
-                Content = Value and "Noclip enabled!" or "Noclip disabled!",
-                Duration = 3
-            })
-        else
-            Rayfield:Notify({
-                Title = "Feature Unavailable",
-                Content = "Noclip not found in script.",
-                Duration = 5
-            })
-        end
-    end
-})
-
--- Misc Features
-MiscTab:CreateToggle({
-    Name = "Anti AFK",
-    CurrentValue = false,
-    Callback = function(Value)
-        local VirtualUser = game:GetService("VirtualUser")
+        autoChokeEnabled = Value
         if Value then
-            Players.LocalPlayer.Idled:Connect(function()
-                VirtualUser:CaptureController()
-                VirtualUser:ClickButton2(Vector2.new())
-            end)
-            Rayfield:Notify({
-                Title = "Anti AFK",
-                Content = "Anti AFK enabled!",
-                Duration = 3
-            })
+            coroutine.wrap(autoChokeMingle)()
         end
     end
 })
 
-MiscTab:CreateButton({
-    Name = "Season 3 Info",
-    Callback = function()
-        Rayfield:Notify({
-            Title = "Ink Game Season 3 Update",
-            Content = "New Hide and Seek mode, secret roles, new powers, and dodge mechanic. Use toggles to enable features!",
-            Duration = 6
-        })
+-- Jump Rope Tab
+local JumpRopeTab = Window:CreateTab("Jump Rope", nil)
+local autoJumpEnabled = false
+local function autoJumpRope()
+    while autoJumpEnabled do
+        if workspace:FindFirstChild("JumpRope") and LocalPlayer.Character then
+            LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+        wait(0.1) -- Adjust timing based on game
+    end
+end
+
+JumpRopeTab:CreateToggle({
+    Name = "Auto-Jump",
+    CurrentValue = false,
+    Callback = function(Value)
+        autoJumpEnabled = Value
+        if Value then
+            coroutine.wrap(autoJumpRope)()
+        end
     end
 })
 
-MiscTab:CreateButton({
-    Name = "Join Discord",
+-- Powers Tab
+local PowersTab = Window:CreateTab("Powers", nil)
+PowersTab:CreateButton({
+    Name = "Enable Free Powers",
     Callback = function()
-        local discordLink = "https://discord.gg/mrGvYhBa"
-        if setclipboard then
-            setclipboard(discordLink)
+        if ReplicatedStorage:FindFirstChild("UnlockPower") then
+            ReplicatedStorage.UnlockPower:FireServer("Dash")
             Rayfield:Notify({
-                Title = "Join Discord",
-                Content = "Discord invite link copied to clipboard: " .. discordLink,
-                Duration = 6,
-                Image = "rbxassetid://4483345998"
+                Title = "Powers",
+                Content = "Attempted to unlock Dash power!",
+                Duration = 3
             })
         else
             Rayfield:Notify({
                 Title = "Error",
-                Content = "Clipboard functionality not supported. Join manually: " .. discordLink,
-                Duration = 6,
-                Image = "rbxassetid://4483345998"
+                Content = "UnlockPower event not found!",
+                Duration = 3
             })
         end
     end
 })
 
--- Execute Script if HttpService is enabled
-if HttpService.HttpEnabled then
-    executeRemoteScript()
-else
-    warn("HttpService is disabled. Enable it in game settings to use this script.")
-    Rayfield:Notify({
-        Title = "HttpService Error",
-        Content = "HttpService is disabled. Enable it in game settings.",
-        Duration = 5,
-        Image = "rbxassetid://4483345998"
-    })
+-- Initialize on Character Spawn
+LocalPlayer.CharacterAdded:Connect(function(character)
+    if godModeEnabled then enableGodMode() end
+    if staminaEnabled then enableInfiniteStamina() end
+    setSpeed(speed)
+    if espEnabled then setupESP() end
+    if glassVisionEnabled then glassVision() end
+end)
+
+-- Initialize if Character Exists
+if LocalPlayer.Character then
+    if godModeEnabled then enableGodMode() end
+    if staminaEnabled then enableInfiniteStamina() end
+    setSpeed(speed)
+    if espEnabled then setupESP() end
+    if glassVisionEnabled then glassVision() end
 end
+
+Rayfield:Notify({
+    Title = "Script Loaded",
+    Content = "Ink Game GUI loaded successfully!",
+    Duration = 5
+})
